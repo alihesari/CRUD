@@ -38,6 +38,13 @@ impl Router {
         }
     }
 
+    pub fn post(&mut self, path: &str, handler: Box<dyn Handler>) {
+        self.method_map
+            .entry(Method::POST)
+            .or_insert_with(InternalRouter::new)
+            .add(path, handler)
+    }
+
     pub fn get(&mut self, path: &str, handler: Box<dyn Handler>) {
         self.method_map
             .entry(Method::GET)
@@ -45,9 +52,17 @@ impl Router {
             .add(path, handler)
     }
 
-    pub fn post(&mut self, path: &str, handler: Box<dyn Handler>) {
+
+    pub fn update(&mut self, path: &str, handler: Box<dyn Handler>) {
         self.method_map
-            .entry(Method::POST)
+            .entry(Method::PATCH)
+            .or_insert_with(InternalRouter::new)
+            .add(path, handler)
+    }
+
+    pub fn delete(&mut self, path: &str, handler: Box<dyn Handler>) {
+        self.method_map
+            .entry(Method::DELETE)
             .or_insert_with(InternalRouter::new)
             .add(path, handler)
     }

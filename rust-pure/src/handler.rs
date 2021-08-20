@@ -2,18 +2,14 @@ use crate::{Context, Response};
 use hyper::StatusCode;
 use serde::Deserialize;
 
-pub async fn test_handler(ctx: Context) -> String {
-    format!("test called, state_thing was: {}", ctx.state.state_thing)
-}
-
 #[derive(Deserialize)]
-struct SendRequest {
+struct CreateRequest {
     name: String,
-    active: bool,
+    email: String,
 }
 
-pub async fn send_handler(mut ctx: Context) -> Response {
-    let body: SendRequest = match ctx.body_json().await {
+pub async fn create(mut ctx: Context) -> Response {
+    let body: CreateRequest = match ctx.body_json().await {
         Ok(v) => v,
         Err(e) => {
             return hyper::Response::builder()
@@ -26,8 +22,20 @@ pub async fn send_handler(mut ctx: Context) -> Response {
     Response::new(
         format!(
             "send called with name: {} and active: {}",
-            body.name, body.active
+            body.name, body.email
         )
         .into(),
     )
+}
+
+pub async fn read(ctx: Context) -> String {
+    format!("test called, state_thing was: {}", ctx.state.state_thing)
+}
+
+pub async fn update(ctx: Context) -> String {
+    format!("test called, state_thing was: {}", ctx.state.state_thing)
+}
+
+pub async fn delete(ctx: Context) -> String {
+    format!("test called, state_thing was: {}", ctx.state.state_thing)
 }

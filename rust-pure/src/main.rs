@@ -7,12 +7,13 @@ use hyper::{
 use route_recognizer::Params;
 use router::Router;
 use std::sync::Arc;
+use postgres::{Client, NoTls, Error};
 
 mod handler;
 mod router;
 
-type Response = hyper::Response<hyper::Body>;
-type Error = Box<dyn std::error::Error + Send + Sync + 'static>;
+type ResponseType = hyper::Response<hyper::Body>;
+type ErrorType = Box<dyn std::error::Error + Send + Sync + 'static>;
 
 #[derive(Clone, Debug)]
 pub struct AppState {
@@ -24,11 +25,10 @@ async fn main() {
     let some_state = "state".to_string();
 
     let mut router: Router = Router::new();
-    router.get("/", Box::new(handler::test_handler));
-    router.post("/", Box::new(handler::send_handler));
-    // router.delete("/", Box::new(handler::send_handler));
-    // router.update("/", Box::new(handler::send_handler));
-    // router.get("/params/:some_param", Box::new(handler::param_handler));
+    router.post("/", Box::new(handler::create));
+    router.get("/", Box::new(handler::read));
+    router.update("/", Box::new(handler::update));
+    router.delete("/", Box::new(handler::delete));
 
     let shared_router = Arc::new(router);
     let new_service = make_service_fn(move |_| {
@@ -38,7 +38,7 @@ async fn main() {
 
         let router_capture = shared_router.clone();
         async {
-            Ok::<_, Error>(service_fn(move |req| {
+            Ok::<_, ErrorType>(service_fn(move |req| {
                 route(router_capture.clone(), req, app_state.clone())
             }))
         }
@@ -54,7 +54,7 @@ async fn route(
     router: Arc<Router>,
     req: Request<hyper::Body>,
     app_state: AppState,
-) -> Result<Response, Error> {
+) -> Result<ResponseType, ErrorType> {
     let found_handler = router.route(req.uri().path(), req.method());
     let resp = found_handler
         .handler
@@ -81,7 +81,7 @@ impl Context {
         }
     }
 
-    pub async fn body_json<T: serde::de::DeserializeOwned>(&mut self) -> Result<T, Error> {
+    pub async fn body_json<T: serde::de::DeserializeOwned>(&mut self) -> Result<T, ErrorType> {
         let body_bytes = match self.body_bytes {
             Some(ref v) => v,
             _ => {
