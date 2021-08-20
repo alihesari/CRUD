@@ -1,6 +1,9 @@
-use crate::{Context, Response};
+use super::*;
+use crate::{Context, ResponseType, users};
 use hyper::StatusCode;
 use serde::Deserialize;
+use sea_orm::Database;
+use sea_orm::{entity::*, error::*, query::*, DbConn};
 
 #[derive(Deserialize)]
 struct CreateRequest {
@@ -8,7 +11,21 @@ struct CreateRequest {
     email: String,
 }
 
-pub async fn create(mut ctx: Context) -> Response {
+pub async fn adduser(db: &DbConn) -> Result<(), DbErr> {
+    let usedata = users::ActiveModel {
+        name: Set("Ali".to_owned()),
+        email: Set("asd@asd.com".to_owned()),
+        ..Default::default()
+    };
+    let res: InsertResult = Users::insert(usedata).exec(db).await?;
+
+    println!();
+    println!("Inserted: last_insert_id = {}\n", res.last_insert_id);
+
+    Ok(())
+}
+
+pub async fn create(mut ctx: Context) -> ResponseType {
     let body: CreateRequest = match ctx.body_json().await {
         Ok(v) => v,
         Err(e) => {
@@ -19,7 +36,10 @@ pub async fn create(mut ctx: Context) -> Response {
         }
     };
 
-    Response::new(
+    let db = Database::connect("postgres://postgres:123@host/crud").await.unwrap();
+    adduser(&db).await;
+
+    ResponseType::new(
         format!(
             "send called with name: {} and active: {}",
             body.name, body.email

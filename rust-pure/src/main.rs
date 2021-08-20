@@ -7,10 +7,15 @@ use hyper::{
 use route_recognizer::Params;
 use router::Router;
 use std::sync::Arc;
-use postgres::{Client, NoTls, Error};
 
+mod prelude;
+mod usersModel;
 mod handler;
 mod router;
+
+use prelude::*;
+use usersModel as users;
+
 
 type ResponseType = hyper::Response<hyper::Body>;
 type ErrorType = Box<dyn std::error::Error + Send + Sync + 'static>;

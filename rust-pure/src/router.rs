@@ -1,4 +1,4 @@
-use crate::{Context, Response};
+use crate::{Context, ResponseType};
 use async_trait::async_trait;
 use futures::future::Future;
 use hyper::{Method, StatusCode};
@@ -7,7 +7,7 @@ use std::collections::HashMap;
 
 #[async_trait]
 pub trait Handler: Send + Sync + 'static {
-    async fn invoke(&self, context: Context) -> Response;
+    async fn invoke(&self, context: Context) -> ResponseType;
 }
 
 #[async_trait]
@@ -17,7 +17,7 @@ where
     Fut: Future + Send + 'static,
     Fut::Output: IntoResponse,
 {
-    async fn invoke(&self, context: Context) -> Response {
+    async fn invoke(&self, context: Context) -> ResponseType {
         (self)(context).await.into_response()
     }
 }
@@ -86,7 +86,7 @@ impl Router {
     }
 }
 
-async fn not_found_handler(_cx: Context) -> Response {
+async fn not_found_handler(_cx: Context) -> ResponseType {
     hyper::Response::builder()
         .status(StatusCode::NOT_FOUND)
         .body("NOT FOUND".into())
@@ -94,23 +94,23 @@ async fn not_found_handler(_cx: Context) -> Response {
 }
 
 pub trait IntoResponse: Send + Sized {
-    fn into_response(self) -> Response;
+    fn into_response(self) -> ResponseType;
 }
 
-impl IntoResponse for Response {
-    fn into_response(self) -> Response {
+impl IntoResponse for ResponseType {
+    fn into_response(self) -> ResponseType {
         self
     }
 }
 
 impl IntoResponse for &'static str {
-    fn into_response(self) -> Response {
-        Response::new(self.into())
+    fn into_response(self) -> ResponseType {
+        ResponseType::new(self.into())
     }
 }
 
 impl IntoResponse for String {
-    fn into_response(self) -> Response {
-        Response::new(self.into())
+    fn into_response(self) -> ResponseType {
+        ResponseType::new(self.into())
     }
 }
