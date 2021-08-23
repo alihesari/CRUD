@@ -15,7 +15,7 @@ serde_json = "1.0"
 route-recognizer = "0.2"
 bytes = "0.5"
 async-trait = "0.1"
-sea-orm = { version = "^0", features = [ "sqlx-postgres", "runtime-actix-native-tls", "macros" ], default-features = false }
+sea-orm = { git = "https://github.com/SeaQL/sea-orm", features = [ "sqlx-postgres", "runtime-tokio-rustls", "macros" ], default-features = false }
 
 [profile.dev]
 debug = 0

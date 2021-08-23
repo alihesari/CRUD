@@ -1,28 +1,15 @@
-use super::*;
 use crate::{Context, ResponseType, users};
+// use crate::{Context, ResponseType};
 use hyper::StatusCode;
 use serde::Deserialize;
 use sea_orm::Database;
 use sea_orm::{entity::*, error::*, query::*, DbConn};
+pub use super::usersModel::Entity as Users;
 
 #[derive(Deserialize)]
 struct CreateRequest {
     name: String,
     email: String,
-}
-
-pub async fn adduser(db: &DbConn) -> Result<(), DbErr> {
-    let usedata = users::ActiveModel {
-        name: Set("Ali".to_owned()),
-        email: Set("asd@asd.com".to_owned()),
-        ..Default::default()
-    };
-    let res: InsertResult = Users::insert(usedata).exec(db).await?;
-
-    println!();
-    println!("Inserted: last_insert_id = {}\n", res.last_insert_id);
-
-    Ok(())
 }
 
 pub async fn create(mut ctx: Context) -> ResponseType {
@@ -35,13 +22,11 @@ pub async fn create(mut ctx: Context) -> ResponseType {
                 .unwrap()
         }
     };
-
-    let db = Database::connect("postgres://postgres:123@host/crud").await.unwrap();
-    adduser(&db).await;
+    
 
     ResponseType::new(
         format!(
-            "send called with name: {} and active: {}",
+            "send called with. name: {} , email: {}",
             body.name, body.email
         )
         .into(),
@@ -49,6 +34,14 @@ pub async fn create(mut ctx: Context) -> ResponseType {
 }
 
 pub async fn read(ctx: Context) -> String {
+    let db = Database::connect("postgres://postgres:123@host/crud").await.unwrap();
+    let usedata = users::ActiveModel {
+        name: Set("Ali".to_owned()),
+        email: Set("asd@asd.com".to_owned()),
+        ..Default::default()
+    };
+    Users::insert(usedata).exec(&db).await;
+
     format!("test called, state_thing was: {}", ctx.state.state_thing)
 }
 
